@@ -6,9 +6,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 
 
+# GLOBAL VARIABLES
 
-#GLOBAL VARIABLES
-#
 TRAIN_SIZE = 50000
 TEST_SIZE = 10000
 CROSS_VALIDATION_SPLIT = 0.1
@@ -19,6 +18,7 @@ degree = 5
 gamma = 1.0 / 100
 C = 0.001
 chosen_class = 0
+pca_components = 100
 
 
 
@@ -57,7 +57,7 @@ y_test[y_test == chosen_class] = 1.0
 #print(f"ytrain before{y_train[:100]}")
 #print(f"ytest before{y_test[:100]}")
 
-pca = PCA(n_components=100)
+pca = PCA(n_components=pca_components)
 pca.fit(X_train)
 X_train = pca.transform(X_train)
 #pca.fit(X_test)
@@ -106,27 +106,31 @@ def predict(X_test, c, d, g, b, X_train, ay):
     return np.sign(kernel_sum + b)
 
 
-print(f"x_train shape: {X_train.shape}")
-print(f"y_train shape: {y_train.shape}")
+if __name__ == "__main__":
+    print(f"REDUCED TRAINING SET: {X_train.shape}")
+    print(f"DEGREE: {degree}")
+    print(f"CHOSEN CLASS: {class_dict[chosen_class]}")
+    print(f"x_train shape: {X_train.shape}")
+    print(f"y_train shape: {y_train.shape}")
 
-kernel_matrix = compute_polynomial_kernel(X_train, coeff, degree, gamma)
-print(f"polynomial kernel matrix: {kernel_matrix.shape}")
+    kernel_matrix = compute_polynomial_kernel(X_train, coeff, degree, gamma)
+    print(f"polynomial kernel matrix: {kernel_matrix.shape}")
 
-alphas_lagrange = quadratic_solution(kernel_matrix, y_train, C)
-print(f"alphas lagrange matrix shape: {alphas_lagrange.shape}")
+    alphas_lagrange = quadratic_solution(kernel_matrix, y_train, C)
+    print(f"alphas lagrange matrix shape: {alphas_lagrange.shape}")
 
-sv_indices = support_vectors_indices(alphas_lagrange)
-print(f"number of support vectors: {len(sv_indices)}")
+    sv_indices = support_vectors_indices(alphas_lagrange)
+    print(f"number of support vectors: {len(sv_indices)}")
 
-alpha_y_product = alpha_y_multiplication(alphas_lagrange, y_train)
-print(f"a*y shape: {alpha_y_product.shape}")
+    alpha_y_product = alpha_y_multiplication(alphas_lagrange, y_train)
+    print(f"a*y shape: {alpha_y_product.shape}")
 
-bias = compute_bias(alphas_lagrange, y_train, kernel_matrix, sv_indices[0],alpha_y_product)
-print(f"bias shape: {bias.shape}, bias: {bias}")
+    bias = compute_bias(alphas_lagrange, y_train, kernel_matrix, sv_indices[0],alpha_y_product)
+    print(f"bias shape: {bias.shape}, bias: {bias}")
 
-y_pred = predict(X_test, coeff, degree, gamma, bias, X_train, alpha_y_product)
+    y_pred = predict(X_test, coeff, degree, gamma, bias, X_train, alpha_y_product)
 
-#print(f"y test after: {y_test[:100]}")
-#print(f"y pred after: {y_pred[:100]}")
+    #print(f"y test after: {y_test[:100]}")
+    #print(f"y pred after: {y_pred[:100]}")
 
-print(f"accuracy: {accuracy_score(y_test, y_pred)}")
+    print(f"accuracy: {accuracy_score(y_test, y_pred)}")
